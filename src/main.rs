@@ -2,18 +2,44 @@
 use std::env;
 #[allow(unused_imports)]
 use std::fs;
+use std::io::Read;
+use std::io::Write;
 #[allow(unused_imports)]
 use std::net::TcpListener;
 
 fn main() {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
     println!("Logs from your program will appear here!");
 
-    // Uncomment this block to pass the first stage
     let listener = TcpListener::bind("127.0.0.1:6379").unwrap();
-    
-    match listener.accept() {
-        Ok((_socket, addr)) => println!("accepted new client: {:?}", addr),
-        Err(e) => println!("couldn't accept client: {:?}", e),
+
+    for result in listener.incoming() {
+        match result {
+            Ok(stream) => {
+                println!("Connection established!");
+
+                // Read the stream into a buffer
+                let mut stream = stream;
+                let mut request = [0; 1024];
+                stream.read(&mut request).unwrap();
+
+                println!("{}", String::from_utf8_lossy(&request));
+
+                // Write the response
+                let response = "+PONG\r\n";
+                println!("{}", response);
+                match stream.write(response.as_bytes()) {
+                    Ok(size) => println!("Response sent! size: {}", size),
+                    Err(e) => eprintln!("Failed to send response: {}", e),
+                }
+
+                match stream.flush() {
+                    Ok(_) => println!("Flushed successfully!"),
+                    Err(e) => println!("Error flushing: {}", e),
+                }
+
+                println!("Connection closed!");
+            }
+            Err(e) => println!("couldn't accept client: {:?}", e),
+        }
     }
 }
