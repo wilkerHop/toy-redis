@@ -27,15 +27,7 @@ fn main() {
                 // Write the response
                 let response = "+PONG\r\n";
                 println!("{}", response);
-                match stream.write(response.as_bytes()) {
-                    Ok(size) => println!("Response sent! size: {}", size),
-                    Err(e) => eprintln!("Failed to send response: {}", e),
-                }
-
-                match stream.flush() {
-                    Ok(_) => println!("Flushed successfully!"),
-                    Err(e) => println!("Error flushing: {}", e),
-                }
+                stream.write(response.as_bytes()).unwrap();
 
                 println!("Connection closed!");
             }
